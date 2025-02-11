@@ -24,6 +24,7 @@ model Application {
   positionTitle   String      @map("position_title")
   status          String
   applicationDate DateTime?   @map("application_date") @db.Date
+  jobUrl          String?     @map("job_url")  // Add this line
   notes           String?
   createdAt       DateTime    @default(now()) @map("created_at")
   interviews      Interview[]
