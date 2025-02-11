@@ -1,29 +1,44 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, LineChart, Line, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-const DashboardStats = () => {
-    // Mock data - replace with real data from your API
+const DashboardStats = ({applications}) => {
+
     const stats = {
-        totalApplications: 25,
-        activeInterviews: 3,
-        responseRate: 45,
-        offerRate: 15
+        totalApplications: applications.length,
+        activeInterviews: applications.filter(app => app.status === 'Interview').length,
+        responseRate: Math.round((applications.filter(app =>
+            ['Interview', 'Offer', 'Assessment', 'Programming'].includes(app.status)
+        ).length / applications.length) * 100) || 0,
+        offerRate: Math.round((applications.filter(app =>
+            app.status === 'Offer'
+        ).length / applications.length) * 100) || 0
     };
 
-    const applicationHistory = [
-        { name: 'Jan', applications: 4 },
-        { name: 'Feb', applications: 6 },
-        { name: 'Mar', applications: 8 },
-        { name: 'Apr', applications: 7 },
-    ];
+     const applicationHistory = applications.reduce((acc, app) => {
+         const month = new Date(app.applicationDate).toLocaleString('default', {month: 'short'});
+         const existingMonth = acc.find(item => item.name === month);
 
-    const statusBreakdown = [
-        { status: 'Applied', count: 12 },
-        { status: 'Interview', count: 6 },
-        { status: 'Offer', count: 2 },
-        { status: 'Rejected', count: 5 },
-    ];
+         if (existingMonth){
+             existingMonth.applications++;
+         } else {
+             acc.push({name: month, applications: 1});
+         }
+         return acc;
+     } , []).sort((a, b) => {
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            return months.indexOf(a.name) - months.indexOf(b.name);
+     });
+
+    const statusBreakdown = applications.reduce((acc, app) => {
+        const existingStatus = acc.find(item => item.status === app.status);
+        if (existingStatus) {
+            existingStatus.count++;
+        } else {
+            acc.push({ status: app.status, count: 1 });
+        }
+        return acc;
+    }, []);
 
     return (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
